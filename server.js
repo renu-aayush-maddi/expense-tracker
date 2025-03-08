@@ -1,8 +1,10 @@
-const express = require('express');
-const cors = require('cors');
-const { db } = require('./db/db');
-const { readdirSync } = require('fs');
-require('dotenv').config();
+import express from 'express';
+import cors from 'cors';
+import db from './db/db.js';
+import { readdirSync } from 'fs';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -11,12 +13,13 @@ const PORT = process.env.PORT || 5000;
 app.use(express.json());
 app.use(cors());
 
-// Load Routes Dynamically
+// Load Routes Dynamically (ES Module Fix)
 const routes = readdirSync('./routes');
-routes.forEach((route) => {
+routes.forEach(async (route) => {
     const routePath = `./routes/${route}`;
     try {
-        app.use('/api/v1', require(routePath));
+        const module = await import(routePath);
+        app.use('/api/v1', module.default);
         console.log(`✅ Route Loaded: ${route}`);
     } catch (error) {
         console.error(`❌ Error loading route: ${route}`, error);
